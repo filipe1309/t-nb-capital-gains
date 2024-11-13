@@ -1,0 +1,361 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>capital-gains: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">capital-gains/cmd/cli/capital-gains/main.go (0.0%)</option>
+				
+				<option value="file1">capital-gains/internal/domain/calculator.go (97.4%)</option>
+				
+				<option value="file2">capital-gains/internal/domain/operation.go (78.6%)</option>
+				
+				<option value="file3">capital-gains/internal/domain/tax.go (100.0%)</option>
+				
+				<option value="file4">capital-gains/internal/service/calculate-capital-gain/service.go (81.8%)</option>
+				
+				<option value="file5">capital-gains/internal/util/math.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        calculateCapitalGain "capital-gains/internal/service/calculate-capital-gain"
+        "os"
+)
+
+func main() <span class="cov0" title="0">{
+        calculator := calculateCapitalGain.NewService()
+        if err := calculator.Calculate(os.Stdin, os.Stdout); err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package domain
+
+import (
+        "capital-gains/internal/util"
+)
+
+// Calculator represents the operations values to calculate taxes
+type Calculator struct {
+        TotalLoss            float64
+        TotalSharesQuantity  int64
+        WeightedAveragePrice float64
+}
+
+func NewCalculator() *Calculator <span class="cov6" title="11">{
+        return &amp;Calculator{}
+}</span>
+
+// CalculateTaxes calculate taxes for a list of operations
+func (c *Calculator) CalculateTaxes(operations []Operation) Taxes <span class="cov6" title="11">{
+        taxes := make(Taxes, len(operations))
+        for i, operation := range operations </span><span class="cov10" title="42">{
+                tax := c.calculateTax(operation)
+                if tax != nil </span><span class="cov10" title="42">{
+                        taxes[i] = *tax
+                }</span>
+        }
+        <span class="cov6" title="11">return taxes</span>
+}
+
+// calculateTax calculate tax for a single operation
+func (c *Calculator) calculateTax(operation Operation) *Tax <span class="cov10" title="42">{
+        switch operation.OperationType </span>{
+        case BUY:<span class="cov7" title="16">
+                return c.buy(operation.Quantity, operation.UnitCost)</span>
+        case SELL:<span class="cov8" title="26">
+                return c.sell(operation.Quantity, operation.UnitCost)</span>
+        default:<span class="cov0" title="0">
+                return nil</span>
+        }
+}
+
+// buy calculate tax for a buy operation
+// new-weighted-average = ((current-shares * current-weighted-average) + (purchased-shares * purchase-value)) / (current-shares + purchased-shares)
+func (c *Calculator) buy(quantity int64, unitCost float64) *Tax <span class="cov7" title="16">{
+        totalCurrentCost := float64(c.TotalSharesQuantity) * c.WeightedAveragePrice
+        newCost := float64(quantity) * unitCost
+
+        c.TotalSharesQuantity += quantity
+        c.WeightedAveragePrice = util.RoundTwoDecimals((totalCurrentCost + newCost) / float64(c.TotalSharesQuantity))
+
+        return &amp;Tax{Tax: 0}
+}</span>
+
+// sell calculate tax for a sell operation
+func (c *Calculator) sell(quantity int64, unitCost float64) *Tax <span class="cov8" title="26">{
+        profit := (unitCost - c.WeightedAveragePrice) * float64(quantity)
+
+        if unitCost*float64(quantity) &lt;= FreeTaxValue </span><span class="cov5" title="7">{
+                c.handleFreeTax(quantity, profit)
+                return &amp;Tax{Tax: 0}
+        }</span>
+
+        <span class="cov8" title="19">if profit &lt;= 0 </span><span class="cov5" title="6">{
+                c.handleLossSale(quantity, profit)
+                return &amp;Tax{Tax: 0}
+        }</span>
+
+        <span class="cov7" title="13">return c.handleProfitSale(quantity, profit)</span>
+}
+
+// handleFreeTax handle free tax for a sell operation
+func (c *Calculator) handleFreeTax(quantity int64, profit float64) <span class="cov5" title="7">{
+        if profit &lt;= 0 </span><span class="cov2" title="2">{
+                c.TotalLoss += -profit
+        }</span>
+        <span class="cov5" title="7">c.TotalSharesQuantity -= quantity</span>
+}
+
+// handleLossSale handle loss sale for a sell operation
+func (c *Calculator) handleLossSale(quantity int64, profit float64) <span class="cov5" title="6">{
+        c.TotalSharesQuantity -= quantity
+        c.TotalLoss += -profit
+}</span>
+
+// handleProfitSale handle profit sale for a sell operation
+func (c *Calculator) handleProfitSale(quantity int64, profit float64) *Tax <span class="cov7" title="13">{
+        if c.TotalLoss &gt; 0 </span><span class="cov5" title="6">{
+                if c.TotalLoss &gt;= profit </span><span class="cov4" title="4">{
+                        c.TotalLoss -= profit
+                        c.TotalSharesQuantity -= quantity
+                        return &amp;Tax{Tax: 0}
+                }</span>
+
+                <span class="cov2" title="2">profit -= c.TotalLoss
+                c.TotalLoss = 0</span>
+        }
+
+        <span class="cov6" title="9">c.TotalSharesQuantity -= quantity
+
+        return &amp;Tax{Tax: profit * Rate}</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package domain
+
+import (
+        "bufio"
+        "encoding/json"
+        "io"
+        "log"
+)
+
+// OperationType represents the type of operation
+type OperationType string
+
+const (
+        BUY  OperationType = "buy"
+        SELL OperationType = "sell"
+)
+
+type Operation struct {
+        OperationType OperationType `json:"operation"`
+        UnitCost      float64       `json:"unit-cost"`
+        Quantity      int64         `json:"quantity"`
+}
+
+func ReadOperationsFromJSON(reader io.Reader) ([][]Operation, error) <span class="cov9" title="10">{
+        var operations [][]Operation
+        scanner := bufio.NewScanner(reader)
+        for scanner.Scan() </span><span class="cov10" title="12">{
+                line := scanner.Text()
+
+                if scanner.Text() == "" </span><span class="cov1" title="1">{
+                        break</span>
+                }
+
+                <span class="cov9" title="11">var currentOperations []Operation
+                if err := json.Unmarshal([]byte(line), &amp;currentOperations); err != nil </span><span class="cov0" title="0">{
+                        log.Printf("error unmarshalling operations: %v", err)
+                        return nil, err
+                }</span>
+
+                <span class="cov9" title="11">operations = append(operations, currentOperations)</span>
+        }
+
+        <span class="cov9" title="10">if err := scanner.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov9" title="10">return operations, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package domain
+
+import "fmt"
+
+// Rate is the tax rate
+const Rate = 0.20
+
+// FreeTaxValue is the limit for no tax
+const FreeTaxValue = 20000
+
+// Tax represents the tax amount
+type Tax struct {
+        Tax float64 `json:"tax"`
+}
+
+// Taxes is a list of Tax
+type Taxes []Tax
+
+// MarshalJSON is called by json.Marshal to encode the Tax as JSON
+func (t Tax) MarshalJSON() ([]byte, error) <span class="cov10" title="42">{
+        return []byte(fmt.Sprintf(`{"tax":%.2f}`, t.Tax)), nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package calculatecapitalgain
+
+import (
+        "capital-gains/internal/domain"
+        "encoding/json"
+        "fmt"
+)
+
+type CalculatorService struct{}
+
+// NewService creates a new instance of the CalculatorService
+func NewService() *CalculatorService <span class="cov1" title="1">{
+        return &amp;CalculatorService{}
+}</span>
+
+// Calculate reads operations from stdin, calculates taxes and outputs the result to stdout
+func (srv *CalculatorService) Calculate(reader Reader, writer Writer) error <span class="cov9" title="10">{
+        multiOperations, err := domain.ReadOperationsFromJSON(reader)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("error reading operations: %v", err)
+        }</span>
+
+        <span class="cov9" title="10">for _, operations := range multiOperations </span><span class="cov10" title="11">{
+
+                // Process operations and calculate taxes
+                calculator := domain.NewCalculator()
+                taxes := calculator.CalculateTaxes(operations)
+
+                // Format taxes as JSON and output to stdout
+                if taxesJSON, err := json.Marshal(taxes); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("error marshalling taxes: %v", err)
+                }</span> else<span class="cov10" title="11"> {
+                        fmt.Fprintln(writer, string(taxesJSON))
+                }</span>
+        }
+
+        <span class="cov9" title="10">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package util
+
+import "math"
+
+func RoundTwoDecimals(value float64) float64 <span class="cov10" title="3">{
+        return math.Round(value*100) / 100
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

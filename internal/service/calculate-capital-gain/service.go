@@ -4,11 +4,17 @@ import (
 	"capital-gains/internal/domain"
 	"encoding/json"
 	"fmt"
-	"io"
 )
 
+type CalculatorService struct{}
+
+// NewService creates a new instance of the CalculatorService
+func NewService() *CalculatorService {
+	return &CalculatorService{}
+}
+
 // Calculate reads operations from stdin, calculates taxes and outputs the result to stdout
-func Calculate2(reader io.Reader, writer io.Writer) error {
+func (srv *CalculatorService) Calculate(reader Reader, writer Writer) error {
 	multiOperations, err := domain.ReadOperationsFromJSON(reader)
 	if err != nil {
 		return fmt.Errorf("error reading operations: %v", err)

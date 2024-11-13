@@ -1,18 +1,28 @@
-.PHONY: help test run build docker-build docker-run clean
+.PHONY: test-cover coverage test build mod run docker-build docker-run clean help
 
-CLI_BINARY := bin/capital-gains
+CLI_BINARY := capital-gains
 CLI_MAIN := cmd/cli/capital-gains/main.go
 DOCKER_IMAGE := capital-gains:latest
+COVERAGE_FILE := cp.out
+COVERAGE_HTML := coverage.html
 
 all: build docker-build
 
-test:
-	@echo "🟢 Running tests..."
-	go test -v ./...
+test-cover:
+	go test -race -coverprofile=$(COVERAGE_FILE) ./...
 
-build:
+coverage:
+	go tool cover -html=$(COVERAGE_FILE) -o $(COVERAGE_HTML)
+
+test: test-cover coverage
+
+build: mod
 	@echo "🏗️ Building code..."
-	go build -o $(CLI_BINARY) $(CLI_MAIN)
+	go build -o bin/$(CLI_BINARY) $(CLI_MAIN)
+
+mod:
+	@echo "📦 Downloading dependencies..."
+	go mod download
 
 run:
 	go run $(CLI_MAIN)
@@ -27,13 +37,14 @@ docker-run:
 clean:
 	@echo "🧹 Cleaning up..."
 	@-go clean -testcache
-	@-rm -rf $(CLI_BINARY)
+	@-rm -rf bin/$(CLI_BINARY)
 	@-docker rmi $(DOCKER_IMAGE)
 
 help:
 	@echo "📖 Available commands:"
 	@echo "  make test         - Run tests"
 	@echo "  make build        - Build code"
+	@echo "  make mod          - Download dependencies"
 	@echo "  make run          - Run code"
 	@echo "  make docker-build - Build Docker image"
 	@echo "  make docker-run   - Run Docker container"

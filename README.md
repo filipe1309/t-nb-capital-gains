@@ -11,9 +11,16 @@
 
 Capital Gains
 
+Features
+- Multi-stage docker build
+- DDD Service and Domain layers
+- Utils package
+- Makefile
+
 ## :computer: Technologies
 
 - [Go](https://golang.org/)
+- [Testify](http://github.com/stretchr/testify)
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
 

@@ -6,7 +6,8 @@ import (
 )
 
 func main() {
-	if err := calculateCapitalGain.Calculate2(os.Stdin, os.Stdout); err != nil {
+	calculator := calculateCapitalGain.NewService()
+	if err := calculator.Calculate(os.Stdin, os.Stdout); err != nil {
 		panic(err)
 	}
 }
