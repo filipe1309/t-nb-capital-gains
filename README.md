@@ -13,10 +13,12 @@ Capital Gains
 
 Features
 - Multi-stage docker build
-- DDD Service and Domain layers
 - Utils package
 - Makefile
 - Hexagonal architecture
+    - `application layer` : use cases
+    - `domain layer` : entities, value objects, repositories interfaces
+    - `infrastructure layer` : adapters
 
 ## :computer: Technologies
 

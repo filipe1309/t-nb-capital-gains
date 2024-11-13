@@ -7,15 +7,15 @@ import (
 
 type CalculatorService struct {
 	calculator      *domain.Calculator
-	operationReader OperationReader
-	taxesWriter     TaxesWriter
+	operationReader domain.OperationReader
+	taxesWriter     domain.TaxesWriter
 }
 
 // NewCalculatorService creates a new instance of the CalculatorService
 func NewCalculatorService(
 	calculator *domain.Calculator,
-	operationReader OperationReader,
-	taxesWriter TaxesWriter,
+	operationReader domain.OperationReader,
+	taxesWriter domain.TaxesWriter,
 ) *CalculatorService {
 	return &CalculatorService{
 		calculator:      calculator,
@@ -24,7 +24,7 @@ func NewCalculatorService(
 	}
 }
 
-// Calculate reads operations from stdin, calculates taxes and outputs the result to stdout
+// Calculate reads operations, calculates taxes and writes them to the output
 func (srv *CalculatorService) Calculate() error {
 	multiOperations, err := srv.operationReader.ReadOperations()
 	if err != nil {

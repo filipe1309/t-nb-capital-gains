@@ -18,14 +18,14 @@ test: test-cover coverage
 
 build: mod
 	@echo "🏗️ Building code..."
-	go build -o bin/$(CLI_BINARY) $(CLI_MAIN)
+	@go build -o bin/$(CLI_BINARY) $(CLI_MAIN)
 
 mod:
 	@echo "📦 Downloading dependencies..."
 	go mod download
 
 run:
-	go run $(CLI_MAIN)
+	@go run $(CLI_MAIN)
 
 docker-build:
 	@echo "🐳 Building Docker image..."

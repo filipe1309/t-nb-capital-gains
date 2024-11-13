@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-type BufferTaxesWriter struct{
+type BufferTaxesWriter struct {
 	buffer *bytes.Buffer
 }
 
