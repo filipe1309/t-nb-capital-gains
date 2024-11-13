@@ -16,6 +16,7 @@ Features
 - DDD Service and Domain layers
 - Utils package
 - Makefile
+- Hexagonal architecture
 
 ## :computer: Technologies
 
@@ -55,6 +56,6 @@ make run < input.txt
 
 ## :clap: Acknowledgments
 
-- []()
+- [Hexagonal Architecture, Ports and Adapters in Go](https://medium.com/@kyodo-tech/hexagonal-architecture-ports-and-adapters-in-go-f1af950726b)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

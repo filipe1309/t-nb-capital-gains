@@ -1,13 +1,19 @@
 package main
 
 import (
-	calculateCapitalGain "capital-gains/internal/service/calculate-capital-gain"
+	"capital-gains/internal/application"
+	"capital-gains/internal/domain"
+	"capital-gains/internal/infrastructure"
 	"os"
 )
 
 func main() {
-	calculator := calculateCapitalGain.NewService()
-	if err := calculator.Calculate(os.Stdin, os.Stdout); err != nil {
+	calculator := domain.NewCalculator()
+	operationReader := infrastructure.NewSTDINOperationReader(os.Stdin)
+	taxesWriter := infrastructure.NewSTDOUTTaxesWriter()
+	service := application.NewCalculatorService(calculator, operationReader, taxesWriter)
+
+	if err := service.Calculate(); err != nil {
 		panic(err)
 	}
 }

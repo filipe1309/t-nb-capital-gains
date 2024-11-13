@@ -57,15 +57,25 @@
 				
 				<option value="file0">capital-gains/cmd/cli/capital-gains/main.go (0.0%)</option>
 				
-				<option value="file1">capital-gains/internal/domain/calculator.go (97.4%)</option>
+				<option value="file1">capital-gains/internal/application/calculator_service.go (87.5%)</option>
 				
-				<option value="file2">capital-gains/internal/domain/operation.go (78.6%)</option>
+				<option value="file2">capital-gains/internal/domain/calculator.go (97.4%)</option>
 				
 				<option value="file3">capital-gains/internal/domain/tax.go (100.0%)</option>
 				
-				<option value="file4">capital-gains/internal/service/calculate-capital-gain/service.go (81.8%)</option>
+				<option value="file4">capital-gains/internal/infrastructure/reader_operations_api.go (0.0%)</option>
 				
-				<option value="file5">capital-gains/internal/util/math.go (100.0%)</option>
+				<option value="file5">capital-gains/internal/infrastructure/reader_operations_db.go (0.0%)</option>
+				
+				<option value="file6">capital-gains/internal/infrastructure/reader_operations_file.go (80.0%)</option>
+				
+				<option value="file7">capital-gains/internal/infrastructure/reader_operations_stdin.go (0.0%)</option>
+				
+				<option value="file8">capital-gains/internal/infrastructure/writer_taxes_buffer.go (80.0%)</option>
+				
+				<option value="file9">capital-gains/internal/infrastructure/writer_taxes_stdout.go (0.0%)</option>
+				
+				<option value="file10">capital-gains/internal/util/math.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -91,19 +101,67 @@
 		<pre class="file" id="file0" style="display: none">package main
 
 import (
-        calculateCapitalGain "capital-gains/internal/service/calculate-capital-gain"
+        "capital-gains/internal/application"
+        "capital-gains/internal/domain"
+        "capital-gains/internal/infrastructure"
         "os"
 )
 
 func main() <span class="cov0" title="0">{
-        calculator := calculateCapitalGain.NewService()
-        if err := calculator.Calculate(os.Stdin, os.Stdout); err != nil </span><span class="cov0" title="0">{
+        calculator := domain.NewCalculator()
+        operationReader := infrastructure.NewSTDINOperationReader(os.Stdin)
+        taxesWriter := infrastructure.NewSTDOUTTaxesWriter()
+        service := application.NewCalculatorService(calculator, operationReader, taxesWriter)
+
+        if err := service.Calculate(); err != nil </span><span class="cov0" title="0">{
                 panic(err)</span>
         }
 }
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package domain
+		<pre class="file" id="file1" style="display: none">package application
+
+import (
+        "capital-gains/internal/domain"
+        "fmt"
+)
+
+type CalculatorService struct {
+        calculator      *domain.Calculator
+        operationReader OperationReader
+        taxesWriter     TaxesWriter
+}
+
+// NewCalculatorService creates a new instance of the CalculatorService
+func NewCalculatorService(
+        calculator *domain.Calculator,
+        operationReader OperationReader,
+        taxesWriter TaxesWriter,
+) *CalculatorService <span class="cov9" title="10">{
+        return &amp;CalculatorService{
+                calculator:      calculator,
+                operationReader: operationReader,
+                taxesWriter:     taxesWriter,
+        }
+}</span>
+
+// Calculate reads operations from stdin, calculates taxes and outputs the result to stdout
+func (srv *CalculatorService) Calculate() error <span class="cov9" title="10">{
+        multiOperations, err := srv.operationReader.ReadOperations()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("error reading operations: %v", err)
+        }</span>
+
+        <span class="cov9" title="10">for _, operations := range multiOperations </span><span class="cov10" title="11">{
+                taxes := srv.calculator.CalculateTaxes(operations)
+                srv.taxesWriter.WriteTaxes(taxes)
+        }</span>
+
+        <span class="cov9" title="10">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package domain
 
 import (
         "capital-gains/internal/util"
@@ -116,7 +174,7 @@ type Calculator struct {
         WeightedAveragePrice float64
 }
 
-func NewCalculator() *Calculator <span class="cov6" title="11">{
+func NewCalculator() *Calculator <span class="cov6" title="10">{
         return &amp;Calculator{}
 }</span>
 
@@ -206,56 +264,6 @@ func (c *Calculator) handleProfitSale(quantity int64, profit float64) *Tax <span
 }
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package domain
-
-import (
-        "bufio"
-        "encoding/json"
-        "io"
-        "log"
-)
-
-// OperationType represents the type of operation
-type OperationType string
-
-const (
-        BUY  OperationType = "buy"
-        SELL OperationType = "sell"
-)
-
-type Operation struct {
-        OperationType OperationType `json:"operation"`
-        UnitCost      float64       `json:"unit-cost"`
-        Quantity      int64         `json:"quantity"`
-}
-
-func ReadOperationsFromJSON(reader io.Reader) ([][]Operation, error) <span class="cov9" title="10">{
-        var operations [][]Operation
-        scanner := bufio.NewScanner(reader)
-        for scanner.Scan() </span><span class="cov10" title="12">{
-                line := scanner.Text()
-
-                if scanner.Text() == "" </span><span class="cov1" title="1">{
-                        break</span>
-                }
-
-                <span class="cov9" title="11">var currentOperations []Operation
-                if err := json.Unmarshal([]byte(line), &amp;currentOperations); err != nil </span><span class="cov0" title="0">{
-                        log.Printf("error unmarshalling operations: %v", err)
-                        return nil, err
-                }</span>
-
-                <span class="cov9" title="11">operations = append(operations, currentOperations)</span>
-        }
-
-        <span class="cov9" title="10">if err := scanner.Err(); err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-
-        <span class="cov9" title="10">return operations, nil</span>
-}
-</pre>
-		
 		<pre class="file" id="file3" style="display: none">package domain
 
 import "fmt"
@@ -280,47 +288,214 @@ func (t Tax) MarshalJSON() ([]byte, error) <span class="cov10" title="42">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package calculatecapitalgain
+		<pre class="file" id="file4" style="display: none">package infrastructure
 
 import (
+        "capital-gains/internal/domain"
+
+        "net/http"
+)
+
+type APIOperationReader struct {
+        client *http.Client
+}
+
+func NewAPIOperationReader(client *http.Client) *APIOperationReader <span class="cov0" title="0">{
+        return &amp;APIOperationReader{client: client}
+}</span>
+
+func (r *APIOperationReader) ReadOperations() ([][]domain.Operation, error) <span class="cov0" title="0">{
+        var operations [][]domain.Operation
+
+        // TODO: Implement the ReadOperations method for the APIOperationReader
+
+        return operations, nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package infrastructure
+
+import (
+        "capital-gains/internal/domain"
+        "database/sql"
+)
+
+type DBOperationReader struct {
+        db *sql.DB
+}
+
+func NewDBOperationReader(db *sql.DB) *DBOperationReader <span class="cov0" title="0">{
+        return &amp;DBOperationReader{db: db}
+}</span>
+
+func (r *DBOperationReader) ReadOperations() ([][]domain.Operation, error) <span class="cov0" title="0">{
+        var operations [][]domain.Operation
+
+        // TODO: Implement the ReadOperations method for the DBOperationReader
+
+        return operations, nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package infrastructure
+
+import (
+        "bufio"
+        "capital-gains/internal/domain"
+        "encoding/json"
+        "io"
+        "log"
+        "os"
+)
+
+type FileOperationReader struct {
+        reader io.Reader
+}
+
+func NewFileOperationReader(inputPath string) *FileOperationReader <span class="cov9" title="10">{
+        input, err := os.Open(inputPath)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("failed to open input file: %v", err)
+        }</span>
+        <span class="cov9" title="10">return &amp;FileOperationReader{reader: input}</span>
+}
+
+func (r *FileOperationReader) ReadOperations() ([][]domain.Operation, error) <span class="cov9" title="10">{
+        var operations [][]domain.Operation
+        scanner := bufio.NewScanner(r.reader)
+        for scanner.Scan() </span><span class="cov10" title="12">{
+                line := scanner.Text()
+
+                if scanner.Text() == "" </span><span class="cov1" title="1">{
+                        break</span>
+                }
+
+                <span class="cov9" title="11">var currentOperations []domain.Operation
+                if err := json.Unmarshal([]byte(line), &amp;currentOperations); err != nil </span><span class="cov0" title="0">{
+                        log.Printf("error unmarshalling operations: %v", err)
+                        return nil, err
+                }</span>
+
+                <span class="cov9" title="11">operations = append(operations, currentOperations)</span>
+        }
+
+        <span class="cov9" title="10">if err := scanner.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov9" title="10">return operations, nil</span>
+}
+
+func (r *FileOperationReader) Close() <span class="cov9" title="10">{
+        if closer, ok := r.reader.(io.Closer); ok </span><span class="cov9" title="10">{
+                closer.Close()
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package infrastructure
+
+import (
+        "bufio"
+        "capital-gains/internal/domain"
+        "encoding/json"
+        "io"
+        "log"
+)
+
+type STDINOperationReader struct {
+        reader io.Reader
+}
+
+func NewSTDINOperationReader(reader io.Reader) *STDINOperationReader <span class="cov0" title="0">{
+        return &amp;STDINOperationReader{reader: reader}
+}</span>
+
+func (r *STDINOperationReader) ReadOperations() ([][]domain.Operation, error) <span class="cov0" title="0">{
+        var operations [][]domain.Operation
+        scanner := bufio.NewScanner(r.reader)
+        for scanner.Scan() </span><span class="cov0" title="0">{
+                line := scanner.Text()
+
+                if scanner.Text() == "" </span><span class="cov0" title="0">{
+                        break</span>
+                }
+
+                <span class="cov0" title="0">var currentOperations []domain.Operation
+                if err := json.Unmarshal([]byte(line), &amp;currentOperations); err != nil </span><span class="cov0" title="0">{
+                        log.Printf("error unmarshalling operations: %v", err)
+                        return nil, err
+                }</span>
+
+                <span class="cov0" title="0">operations = append(operations, currentOperations)</span>
+        }
+
+        <span class="cov0" title="0">if err := scanner.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return operations, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package infrastructure
+
+import (
+        "bytes"
         "capital-gains/internal/domain"
         "encoding/json"
         "fmt"
 )
 
-type CalculatorService struct{}
+type BufferTaxesWriter struct{
+        buffer *bytes.Buffer
+}
 
-// NewService creates a new instance of the CalculatorService
-func NewService() *CalculatorService <span class="cov1" title="1">{
-        return &amp;CalculatorService{}
+func NewBufferTaxesWriter(buffer *bytes.Buffer) *BufferTaxesWriter <span class="cov9" title="10">{
+        return &amp;BufferTaxesWriter{buffer: buffer}
 }</span>
 
-// Calculate reads operations from stdin, calculates taxes and outputs the result to stdout
-func (srv *CalculatorService) Calculate(reader Reader, writer Writer) error <span class="cov9" title="10">{
-        multiOperations, err := domain.ReadOperationsFromJSON(reader)
-        if err != nil </span><span class="cov0" title="0">{
-                return fmt.Errorf("error reading operations: %v", err)
+// WriteTaxes writes taxes to a buffer
+func (w *BufferTaxesWriter) WriteTaxes(taxes domain.Taxes) error <span class="cov10" title="11">{
+        if taxesJSON, err := json.Marshal(taxes); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("error marshalling taxes: %v", err)
+        }</span> else<span class="cov10" title="11"> {
+                fmt.Fprintln(w.buffer, string(taxesJSON))
         }</span>
 
-        <span class="cov9" title="10">for _, operations := range multiOperations </span><span class="cov10" title="11">{
-
-                // Process operations and calculate taxes
-                calculator := domain.NewCalculator()
-                taxes := calculator.CalculateTaxes(operations)
-
-                // Format taxes as JSON and output to stdout
-                if taxesJSON, err := json.Marshal(taxes); err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("error marshalling taxes: %v", err)
-                }</span> else<span class="cov10" title="11"> {
-                        fmt.Fprintln(writer, string(taxesJSON))
-                }</span>
-        }
-
-        <span class="cov9" title="10">return nil</span>
+        <span class="cov10" title="11">return nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package util
+		<pre class="file" id="file9" style="display: none">package infrastructure
+
+import (
+        "capital-gains/internal/domain"
+        "encoding/json"
+        "fmt"
+        "os"
+)
+
+type STDOUTTaxesWriter struct{}
+
+func NewSTDOUTTaxesWriter() *STDOUTTaxesWriter <span class="cov0" title="0">{
+        return &amp;STDOUTTaxesWriter{}
+}</span>
+
+// WriteTaxes format taxes as JSON and output to stdout
+func (w *STDOUTTaxesWriter) WriteTaxes(taxes domain.Taxes) error <span class="cov0" title="0">{
+        // Format taxes as JSON and output to stdout
+        if taxesJSON, err := json.Marshal(taxes); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("error marshalling taxes: %v", err)
+        }</span> else<span class="cov0" title="0"> {
+                fmt.Fprintln(os.Stdout, string(taxesJSON))
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package util
 
 import "math"
 

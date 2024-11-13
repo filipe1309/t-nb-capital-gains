@@ -1,8 +1,9 @@
-package calculatecapitalgain_test
+package application
 
 import (
 	"bytes"
-	ccg "capital-gains/internal/service/calculate-capital-gain"
+	"capital-gains/internal/domain"
+	"capital-gains/internal/infrastructure"
 	"path/filepath"
 
 	"os"
@@ -11,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCalculator(t *testing.T) {
+func TestCalculate(t *testing.T) {
 	tests := []struct {
 		caseName string
 	}{
@@ -27,25 +28,19 @@ func TestCalculator(t *testing.T) {
 		{"case-12"},
 	}
 
-	calculator := ccg.NewService()
-
 	for _, tt := range tests {
+		calculator := domain.NewCalculator()
+
 		t.Run(tt.caseName, func(t *testing.T) {
 			t.Parallel()
 
 			// Arrange
 			inputPath := filepath.Join("testdata", tt.caseName+".input")
-			input, err := os.Open(inputPath)
-			if err != nil {
-				t.Fatalf("failed to open input file: %v", err)
-			}
-			defer func(input *os.File) {
-				err := input.Close()
-				if err != nil {
-					t.Fatalf("failed to close input file: %v", err)
-				}
-			}(input)
-
+			operationReader := infrastructure.NewFileOperationReader(inputPath)
+			defer operationReader.Close()
+			var output bytes.Buffer
+			taxesWriter := infrastructure.NewBufferTaxesWriter(&output)
+			service := NewCalculatorService(calculator, operationReader, taxesWriter)
 			outputPath := filepath.Join("testdata", tt.caseName+".golden")
 			expected, err := os.ReadFile(outputPath)
 			if err != nil {
@@ -53,9 +48,8 @@ func TestCalculator(t *testing.T) {
 			}
 
 			// Act
-			var output bytes.Buffer
-			err = calculator.Calculate(input, &output);
-			
+			err = service.Calculate()
+
 			// Assert
 			assert.Nil(t, err)
 			assert.Equal(t, string(expected), output.String())
