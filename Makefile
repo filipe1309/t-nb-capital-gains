@@ -2,7 +2,7 @@
 
 CLI_BINARY := capital-gains
 CLI_MAIN := cmd/cli/capital-gains/main.go
-DOCKER_IMAGE := capital-gains:latest
+DOCKER_IMAGE := capital-gains:1
 COVERAGE_FILE := cp.out
 COVERAGE_HTML := coverage.html
 
