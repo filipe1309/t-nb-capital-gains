@@ -17,25 +17,17 @@ Each transaction is a list of operations. Each operation has the following field
 - `unit-cost`: the unit cost of the operation
 - `quantity`: the quantity of the operation
 
-Example of input file:
+Example of input:
 ```json
 [{"operation":"buy","unit-cost":10.00,"quantity":100},{"operation":"sell","unit-cost":15.00,"quantity":50},{"operation":"sell","unit-cost":15.00,"quantity":50}]
 [{"operation":"buy","unit-cost":10.00,"quantity":10000},{"operation":"sell","unit-cost":20.00,"quantity":5000},{"operation":"sell","unit-cost":5.00,"quantity":5000}]
 ```
 
-Example of output file
+Example of output:
 ```json
 [{"tax":0.00},{"tax":0.00},{"tax":0.00}]
 [{"tax":0.00},{"tax":10000.00},{"tax":0.00}]
 ```
-
-### :pushpin: Features
-- Dockerfile with multi-stage docker build
-- Utils package
-- Makefile: to simplify the build and run commands
-- Hexagonal architecture
-- Strategy Pattern: `OperationStrategy` interface, you can implement your own strategy to calculate the capital gains tax of a transaction
-- Testify for unit tests
 
 ### :open_file_folder: Project Structure
 
@@ -51,9 +43,15 @@ Example of output file
 ### :pushpin: Decisions
 
 TBD
- 
 
 
+### :pushpin: Features
+- [x] Dockerfile with multi-stage docker build
+- [x] Utils package
+- [x] Makefile: to simplify the build and run commands
+- [x] Hexagonal architecture
+- [x] Strategy Pattern: `OperationStrategy` interface, you can implement your own strategy to calculate the capital gains tax of a transaction
+- [x] Testify for unit tests
 
 ### :pushpin: To Do
 - [ ] Add integration tests
