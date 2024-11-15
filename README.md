@@ -73,20 +73,18 @@ and to facilitate the deployment of the application in different environments.
 - [Go](https://golang.org/)
 - [Testify](http://github.com/stretchr/testify)
 - [Docker](https://www.docker.com/)
-- [Docker Compose](https://docs.docker.com/compose/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## :scroll: Requirements
 
-### Build/Run Locally
-
-- [Go](https://golang.org/)
-
 ### Build/Run with Docker
 
 - [Docker](https://www.docker.com/)
-- [Docker Compose](https://docs.docker.com/compose/)
+
+### Build/Run Locally
+
+- [Go](https://golang.org/)
 
 > [!NOTE]
 > You need to have Go (> 1.18) installed in your machine to build, run and test the application locally
@@ -110,7 +108,7 @@ make docker-build
 ```
 > The docker image `capital-gains:1` will be created
 
-### :hammer: Build (run locally)
+### :hammer: Build (build locally)
 
 ```sh
 make build
