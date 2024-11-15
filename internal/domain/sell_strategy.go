@@ -1,5 +1,6 @@
 package domain
 
+// SellStrategy is a struct that implements the OperationStrategy interface
 type SellStrategy struct{}
 
 // Execute calculate tax for a sell operation

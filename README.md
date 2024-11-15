@@ -55,17 +55,19 @@ and to facilitate the deployment of the application in different environments.
 
 
 ### :pushpin: Features
-- [x] Dockerfile with multi-stage docker build
+- [x] Dockerfile: small image with multi-stage docker build, and independent of the host environment
 - [x] Utils package
 - [x] Makefile: to simplify the build and run commands
 - [x] Hexagonal architecture
-- [x] Strategy Pattern: `OperationStrategy` interface, you can implement your own strategy to calculate the capital gains tax of a transaction
+- [x] Strategy Pattern: with `OperationStrategy` interface, you can implement your own strategy to calculate the capital gains tax of a transaction
 - [x] Testify for unit tests
 
 ### :pushpin: To Do
 - [ ] Add integration tests
 - [ ] Add more strategies
-- [ ] Add more input validations
+- [ ] Add input validations
+- [ ] Add more logs
+- [ ] Add more error handling
 
 
 ## :computer: Technologies

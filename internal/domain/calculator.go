@@ -22,7 +22,10 @@ func NewCalculator() *Calculator {
 func (c *Calculator) CalculateTaxes(operations []Operation) Taxes {
 	taxes := make(Taxes, len(operations))
 	for i, operation := range operations {
-		taxes[i] = *c.calculateOperationTax(operation)
+		opTax := c.calculateOperationTax(operation)
+		if opTax != nil {
+			taxes[i] = *opTax
+		}
 	}
 	return taxes
 }

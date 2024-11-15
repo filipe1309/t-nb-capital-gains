@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// CalculatorService is a struct that contains a calculator, an operation reader and a taxes writer
 type CalculatorService struct {
 	calculator      *domain.Calculator
 	operationReader domain.OperationReader

@@ -13,12 +13,12 @@ type FileOperationReader struct {
 	reader io.Reader
 }
 
-func NewFileOperationReader(inputPath string) *FileOperationReader {
+func NewFileOperationReader(inputPath string) (*FileOperationReader, error) {
 	input, err := os.Open(inputPath)
 	if err != nil {
-		log.Fatalf("failed to open input file: %v", err)
+		return nil, err
 	}
-	return &FileOperationReader{reader: input}
+	return &FileOperationReader{reader: input}, nil
 }
 
 func (r *FileOperationReader) ReadOperations() ([][]domain.Operation, error) {

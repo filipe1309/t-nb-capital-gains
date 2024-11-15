@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"capital-gains/internal/domain"
 	"capital-gains/internal/infrastructure"
+	"fmt"
 	"path/filepath"
 
 	"os"
@@ -36,7 +37,8 @@ func TestCalculate(t *testing.T) {
 
 			// Arrange
 			inputPath := filepath.Join("testdata", tt.caseName+".input")
-			operationReader := infrastructure.NewFileOperationReader(inputPath)
+			operationReader, err := infrastructure.NewFileOperationReader(inputPath)
+			assert.Nil(t, err)
 			defer operationReader.Close()
 			var output bytes.Buffer
 			taxesWriter := infrastructure.NewBufferTaxesWriter(&output)
@@ -55,4 +57,34 @@ func TestCalculate(t *testing.T) {
 			assert.Equal(t, string(expected), output.String())
 		})
 	}
+}
+
+type mockFileOperationReader struct {}
+
+func (r *mockFileOperationReader) ReadOperations() ([][]domain.Operation, error) {
+	return nil, fmt.Errorf("error reading operations")
+}
+
+func TestCalculateError(t *testing.T) {
+	t.Run("case-9-no-file", func(t *testing.T) {
+		// Arrange
+		inputPath := filepath.Join("testdata", "case-9.input")
+		_, err := infrastructure.NewFileOperationReader(inputPath)
+		assert.Error(t, err)
+	})
+
+	t.Run("case-10-error-reading-json", func(t *testing.T) {
+		// Arrange
+		operationReader := &mockFileOperationReader{}
+		var output bytes.Buffer
+		taxesWriter := infrastructure.NewBufferTaxesWriter(&output)
+		calculator := domain.NewCalculator()
+		service := NewCalculatorService(calculator, operationReader, taxesWriter)
+
+		// Act
+		err := service.Calculate()
+
+		// Assert
+		assert.Error(t, err)
+	})
 }

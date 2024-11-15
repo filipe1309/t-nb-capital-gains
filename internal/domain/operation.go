@@ -8,6 +8,7 @@ const (
 	SELL OperationType = "sell"
 )
 
+// Operation represents a single operation
 type Operation struct {
 	OperationType OperationType `json:"operation"`
 	UnitCost      float64       `json:"unit-cost"`
