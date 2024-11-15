@@ -104,7 +104,7 @@ make docker-build
 ### :hammer: Build (run locally)
 
 > [!NOTE]
-> You need to have Go 1.23 installed in your machine
+> You need to have Go (> 1.18) installed in your machine
 
 ```sh
 make build
@@ -122,6 +122,9 @@ make docker-run < input.txt
 ```
 
 ### :hammer: Build (run locally)
+
+> [!NOTE]
+> You need to have Go (> 1.18) installed in your machine
 
 ```sh
 make run < input.txt
