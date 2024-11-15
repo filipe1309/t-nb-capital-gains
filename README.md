@@ -79,8 +79,17 @@ and to facilitate the deployment of the application in different environments.
 
 ## :scroll: Requirements
 
+### Build/Run Locally
+
+- [Go](https://golang.org/)
+
+### Build/Run with Docker
+
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
+
+> [!NOTE]
+> You need to have Go (> 1.18) installed in your machine to build, run and test the application locally
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -103,9 +112,6 @@ make docker-build
 
 ### :hammer: Build (run locally)
 
-> [!NOTE]
-> You need to have Go (> 1.18) installed in your machine
-
 ```sh
 make build
 ```
@@ -122,9 +128,6 @@ make docker-run < input.txt
 ```
 
 ### :hammer: Build (run locally)
-
-> [!NOTE]
-> You need to have Go (> 1.18) installed in your machine
 
 ```sh
 make run < input.txt
