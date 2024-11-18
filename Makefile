@@ -29,7 +29,7 @@ run:
 
 docker-build:
 	@echo "🐳 Building Docker image..."
-	@docker build -t $(DOCKER_IMAGE) . ||:
+	@docker build -t $(DOCKER_IMAGE) . --no-cache
 
 docker-run:
 	@docker run --rm -i $(DOCKER_IMAGE)
